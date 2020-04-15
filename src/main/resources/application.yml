@@ -1,0 +1,204 @@
+
+
+server:
+  port: 8766
+eureka:
+  instance:
+    prefer-ip-address: true
+    #instance-id: 172.20.0.219:8765:cjf
+    ip-address: 118.31.7.229
+    non-secure-port: 8766
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+      #defaultZone: http://106.14.113.130:8761/eureka/
+spring:
+  datasource:
+    url: jdbc:mysql://106.14.113.130:3306/db_user_center?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driverClassName: com.mysql.cj.jdbc.Driver
+  application:
+    name: boss-bes-gateway
+  redis:
+    database: 6
+    host: 106.14.113.130
+    port: 6379
+    password:
+  cloud:
+    gateway:
+      ################################
+      # 配置允许跨域请求
+      ################################
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - DELETE
+              - PUT
+      discovery:
+        locator:
+          enabled: true
+      #    路由定义
+      routes:
+        - id: boss-bes-auth
+          uri: lb://boss-bes-auth
+          predicates:
+            - Path=/boss/bes/auth/**
+          filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY
+            - name: Hystrix
+              args:
+                name: fallbackcmd
+                fallbackUri: forward:/fallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: boss-bes-basedata
+          uri: lb://boss-bes-basedata
+          predicates:
+            - Path=/boss/bes/basedata/**
+          filters:
+#            - StripPrefix=3
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY
+            - name: Hystrix
+              args:
+                name: fallbackcmd
+                fallbackUri: forward:/fallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: boss-bes-user
+          uri: lb://boss-bes-user
+          predicates:
+            - Path=/boss/bes/user/**
+          filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY
+            - name: Hystrix
+              args:
+                name: fallbackcmd
+                fallbackUri: forward:/fallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: boss-bes-paper
+          uri: lb://boss-bes-paper
+          predicates:
+            - Path=/boss/bes/paper/**
+          filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY
+            - name: Hystrix
+              args:
+                name: fallbackcmd
+                fallbackUri: forward:/fallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: boss-bes-exam
+          uri: lb://boss-bes-exam
+          predicates:
+            - Path=/boss/bes/exam/**
+          filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY
+            - name: Hystrix
+              args:
+                name: fallbackcmd
+                fallbackUri: forward:/fallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+  main:
+    allow-bean-definition-overriding: true
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 240000
+org:
+  my:
+    jwt:
+      #跳过认证的路由
+      skipAuthUrls:
+        - /boss/bes/auth/login/login
+        - /boss/bes/auth/login/getInfo
+        - /boss/bes/auth/login/getMenu
+        - /boss/bes/auth/login/logout
+        - /boss/bes/basedata/subjectType/querySubjectTypeUpdateForm
+        - /boss/bes/basedata/category/queryCategoryInfo
+        - /boss/bes/basedata/category/getCategoryTree
+        - /boss/bes/basedata/dictionary/queryDictionaryValue
+        - /boss/bes/basedata/subjectType/querySubjectTypeUpdateForm
+        - /boss/bes/basedata/category/queryCategoryInfo
+        - /boss/bes/basedata/dictionary/queryDictionaryValue
+        - /boss/bes/basedata/subject/queryAnswer
+        - /boss/bes/user/org/getOrgUpdateForm
+        - /boss/bes/user/company/getCompanyList
+        - /boss/bes/user/company/getCompanyUpdateForm
+        - /boss/bes/user/department/getDepartmentList
+        - /boss/bes/user/department/queryDepartmentLevel
+        - /boss/bes/user/department/getDepartmentUpdateForm
+        - /boss/bes/user/resource/getResourceList
+        - /boss/bes/user/resource/getResourceUpdateForm
+        - /boss/bes/user/role/getRoleList
+        - /boss/bes/user/role/getRoleUpdateForm
+        - /boss/bes/user/role/getResourceForRoleForm
+        - /boss/bes/user/role/getUserForRoleForm
+        - /boss/bes/user/resource/getResourceList
+        - /boss/bes/user/position/queryPositionOptions
+        - /boss/bes/user/position/getPositionUpdateForm
+        - /boss/bes/user/systemparam/getSystemParamUpdateForm
+        - /boss/bes/user/usermanagement/getUserManagementList
+        - /boss/bes/user/usermanagement/queryUserManagementOptions
+        - /boss/bes/user/usermanagement/getUserManagementUpdateForm
+        - /boss/bes/user/department/queryDepartmentParent
+        - /boss/bes/paper/template/queryTemplate
+        - /boss/bes/paper/create/normalGen
+        - /boss/bes/exam/exampublishrecord/getpaperinfo
+        - /boss/bes/exam/exampublishrecord/getuserinfo
+        - /boss/bes/exam/grade/markingPaper
+        - /boss/bes/exam/dopaper/getPaper
+        - /boss/bes/exam/grade/getPaperAnswer
+      ############################################
+      #   有效时长
+      #     单位：d:天、h:小时、m:分钟、s:秒
+      ###########################################
+      effective-time: 1m
+aaron:
+  data-center-id: 5
+  machine-id: 1
+  version: 1
