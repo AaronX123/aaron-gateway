@@ -4,27 +4,27 @@ server:
   port: 8766
 eureka:
   instance:
-    prefer-ip-address: true
-    #instance-id: 172.20.0.219:8765:cjf
-    ip-address: 118.31.7.229
-    non-secure-port: 8766
+    prefer-ip-address: false
+#    prefer-ip-address: true
+#    ip-address: 192.168.1.103
+#    non-secure-port: 8766
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-      #defaultZone: http://106.14.113.130:8761/eureka/
+      defaultZone: http://118.31.7.229:8761/eureka/
+
 spring:
   datasource:
-    url: jdbc:mysql://106.14.113.130:3306/db_user_center?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://118.31.7.229:3307/user?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: 123456
+    password: xym123
     driverClassName: com.mysql.cj.jdbc.Driver
   application:
-    name: boss-bes-gateway
+    name: gateway
   redis:
-    database: 6
-    host: 106.14.113.130
+    database: 8
+    host: 118.31.7.229
     port: 6379
-    password:
+    password: xym123
   cloud:
     gateway:
       ################################
@@ -44,14 +44,14 @@ spring:
           enabled: true
       #    路由定义
       routes:
-        - id: boss-bes-auth
-          uri: lb://boss-bes-auth
+        - id: auth
+          uri: lb://auth
           predicates:
-            - Path=/boss/bes/auth/**
+            - Path=/auth/**
           filters:
             - name: Retry
               args:
-                retries: 3
+                retries: 5
                 statuses: BAD_GATEWAY
             - name: Hystrix
               args:
@@ -63,15 +63,15 @@ spring:
                 redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@ipKeyResolver}"
 
-        - id: boss-bes-basedata
-          uri: lb://boss-bes-basedata
+        - id: base-info
+          uri: lb://baseinfo
           predicates:
-            - Path=/boss/bes/basedata/**
+            - Path=/baseinfo/**
           filters:
 #            - StripPrefix=3
             - name: Retry
               args:
-                retries: 3
+                retries: 5
                 statuses: BAD_GATEWAY
             - name: Hystrix
               args:
@@ -83,14 +83,14 @@ spring:
                 redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@ipKeyResolver}"
 
-        - id: boss-bes-user
-          uri: lb://boss-bes-user
+        - id: user
+          uri: lb://user
           predicates:
-            - Path=/boss/bes/user/**
+            - Path=/user/**
           filters:
             - name: Retry
               args:
-                retries: 3
+                retries: 5
                 statuses: BAD_GATEWAY
             - name: Hystrix
               args:
@@ -102,14 +102,14 @@ spring:
                 redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@ipKeyResolver}"
 
-        - id: boss-bes-paper
-          uri: lb://boss-bes-paper
+        - id: paper
+          uri: lb://paper
           predicates:
-            - Path=/boss/bes/paper/**
+            - Path=/paper/**
           filters:
             - name: Retry
               args:
-                retries: 3
+                retries: 5
                 statuses: BAD_GATEWAY
             - name: Hystrix
               args:
@@ -121,14 +121,14 @@ spring:
                 redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@ipKeyResolver}"
 
-        - id: boss-bes-exam
-          uri: lb://boss-bes-exam
+        - id: exam
+          uri: lb://exam
           predicates:
-            - Path=/boss/bes/exam/**
+            - Path=/exam/**
           filters:
             - name: Retry
               args:
-                retries: 3
+                retries: 5
                 statuses: BAD_GATEWAY
             - name: Hystrix
               args:
@@ -139,6 +139,8 @@ spring:
                 redis-rate-limiter.replenishRate: 10
                 redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@ipKeyResolver}"
+      httpclient:
+        response-timeout: 5000
   main:
     allow-bean-definition-overriding: true
 
@@ -148,51 +150,50 @@ hystrix:
       execution:
         isolation:
           thread:
-            timeoutInMilliseconds: 240000
+            timeoutInMilliseconds: 5000
 org:
   my:
     jwt:
       #跳过认证的路由
       skipAuthUrls:
-        - /boss/bes/auth/login/login
-        - /boss/bes/auth/login/getInfo
-        - /boss/bes/auth/login/getMenu
-        - /boss/bes/auth/login/logout
-        - /boss/bes/basedata/subjectType/querySubjectTypeUpdateForm
-        - /boss/bes/basedata/category/queryCategoryInfo
-        - /boss/bes/basedata/category/getCategoryTree
-        - /boss/bes/basedata/dictionary/queryDictionaryValue
-        - /boss/bes/basedata/subjectType/querySubjectTypeUpdateForm
-        - /boss/bes/basedata/category/queryCategoryInfo
-        - /boss/bes/basedata/dictionary/queryDictionaryValue
-        - /boss/bes/basedata/subject/queryAnswer
-        - /boss/bes/user/org/getOrgUpdateForm
-        - /boss/bes/user/company/getCompanyList
-        - /boss/bes/user/company/getCompanyUpdateForm
-        - /boss/bes/user/department/getDepartmentList
-        - /boss/bes/user/department/queryDepartmentLevel
-        - /boss/bes/user/department/getDepartmentUpdateForm
-        - /boss/bes/user/resource/getResourceList
-        - /boss/bes/user/resource/getResourceUpdateForm
-        - /boss/bes/user/role/getRoleList
-        - /boss/bes/user/role/getRoleUpdateForm
-        - /boss/bes/user/role/getResourceForRoleForm
-        - /boss/bes/user/role/getUserForRoleForm
-        - /boss/bes/user/resource/getResourceList
-        - /boss/bes/user/position/queryPositionOptions
-        - /boss/bes/user/position/getPositionUpdateForm
-        - /boss/bes/user/systemparam/getSystemParamUpdateForm
-        - /boss/bes/user/usermanagement/getUserManagementList
-        - /boss/bes/user/usermanagement/queryUserManagementOptions
-        - /boss/bes/user/usermanagement/getUserManagementUpdateForm
-        - /boss/bes/user/department/queryDepartmentParent
-        - /boss/bes/paper/template/queryTemplate
-        - /boss/bes/paper/create/normalGen
-        - /boss/bes/exam/exampublishrecord/getpaperinfo
-        - /boss/bes/exam/exampublishrecord/getuserinfo
-        - /boss/bes/exam/grade/markingPaper
-        - /boss/bes/exam/dopaper/getPaper
-        - /boss/bes/exam/grade/getPaperAnswer
+        - /auth/login
+        - /auth/getInfo
+        - /auth/getMenu
+        - /auth/logout
+        - /user/login/logout
+        - /baseinfo/querySubjectTypeUpdateForm
+        - /baseinfo/queryCategoryInfo
+        - /baseinfo/getCategoryTree
+        - /baseinfo/queryDictionaryValue
+        - /baseinfo/queryAnswer
+        - /user/org/getOrgUpdateForm
+        - /user/company/getCompanyList
+        - /user/company/getCompanyUpdateForm
+        - /user/department/getDepartmentList
+        - /user/department/queryDepartmentLevel
+        - /user/department/getDepartmentUpdateForm
+        - /user/resource/getResourceList
+        - /user/resource/getResourceUpdateForm
+        - /user/role/getRoleList
+        - /user/role/getRoleUpdateForm
+        - /user/role/updateResourceForRole
+        - /user/role/getUserForRoleForm
+        - /user/role/getResourceForRoleForm
+        - /user/resource/getResourceList
+        - /user/position/queryPositionOptions
+        - /user/position/getPositionUpdateForm
+        - /user/systemparam/getSystemParamUpdateForm
+        - /user/usermanagement/getUserManagementList
+        - /user/usermanagement/queryUserManagementOptions
+        - /user/usermanagement/getUserManagementUpdateForm
+        - /user/department/queryDepartmentParent
+        - /paper/template/query
+        - /paper/create/standard/gen
+        - /exam/exampublishrecord/getpaperinfo
+        - /bes/exam/exampublishrecord/getuserinfo
+        - /bes/exam/grade/markingPaper
+        - /bes/exam/dopaper/getPaper
+        - /bes/exam/grade/getPaperAnswer
       ############################################
       #   有效时长
       #     单位：d:天、h:小时、m:分钟、s:秒
