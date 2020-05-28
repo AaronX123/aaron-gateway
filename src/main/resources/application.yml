@@ -204,6 +204,8 @@ org:
         - /baseinfo/category/getCategoryTree
         - /baseinfo/dictionary/queryDictionaryValue
         - /baseinfo/subject/querySubject
+        - /baseinfo/combExamConfig/queryCombExamConfig
+        - /baseinfo/combExamConfig/queryCombExamConfigItem
         - /user/org/getOrgUpdateForm
         - /user/company/getCompanyList
         - /user/company/getCompanyUpdateForm
@@ -213,6 +215,7 @@ org:
         - /user/resource/getResourceList
         - /user/resource/getResourceUpdateForm
         - /user/role/getRoleList
+        - /user/usermanagement/existCode
         - /user/role/getRoleUpdateForm
         - /user/role/updateResourceForRole
         - /user/role/getUserForRoleForm
