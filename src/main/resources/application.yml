@@ -5,16 +5,34 @@ server:
 eureka:
   instance:
     prefer-ip-address: false
+    lease-expiration-duration-in-seconds: 15
+    lease-renewal-interval-in-seconds: 5
 #    prefer-ip-address: true
 #    ip-address: 192.168.1.103
 #    non-secure-port: 8766
   client:
     serviceUrl:
-      defaultZone: http://118.31.7.229:8761/eureka/
+#      defaultZone: http://118.31.7.229:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+
 
 spring:
+  #云上
+#  datasource:
+#    url: jdbc:mysql://118.31.7.229:3307/user?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+#    username: root
+#    password: xym123
+#    driverClassName: com.mysql.cj.jdbc.Driver
+#  application:
+#    name: gateway
+#  redis:
+#    database: 8
+#    host: 118.31.7.229
+#    port: 6379
+#    password: xym123
   datasource:
-    url: jdbc:mysql://118.31.7.229:3307/user?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/user?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: xym123
     driverClassName: com.mysql.cj.jdbc.Driver
@@ -22,7 +40,7 @@ spring:
     name: gateway
   redis:
     database: 8
-    host: 118.31.7.229
+    host: localhost
     port: 6379
     password: xym123
   cloud:
@@ -63,7 +81,7 @@ spring:
                 redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@ipKeyResolver}"
 
-        - id: base-info
+        - id: baseinfo
           uri: lb://baseinfo
           predicates:
             - Path=/baseinfo/**
@@ -141,6 +159,9 @@ spring:
                 key-resolver: "#{@ipKeyResolver}"
       httpclient:
         response-timeout: 5000
+    loadbalancer:
+      cache:
+        ttl: 5s
   main:
     allow-bean-definition-overriding: true
 
@@ -151,6 +172,18 @@ hystrix:
         isolation:
           thread:
             timeoutInMilliseconds: 5000
+      circuitBreaker:
+        # 当在配置时间窗口内达到此数量的失败后，进行短路。默认20个
+        requestVolumeThreshold: 20
+        # 触发短路的时间值，当该值设为5000时，则当触发 circuit break 后的5000毫秒内都会拒绝request
+        # 也就是5000毫秒后才会关闭circuit。默认5000
+        sleepWindowInMilliseconds: 5000
+        # 强制打开熔断器，如果打开这个开关，那么拒绝所有request，默认false
+        forceOpen: false
+        # 强制关闭熔断器 如果这个开关打开，circuit将一直关闭且忽略，默认false
+        forceClosed: false
+
+
 org:
   my:
     jwt:
@@ -166,6 +199,11 @@ org:
         - /baseinfo/getCategoryTree
         - /baseinfo/queryDictionaryValue
         - /baseinfo/queryAnswer
+        - /baseinfo/subjectType/querySubjectTypeUpdateForm
+        - /baseinfo/category/queryCategoryInfo
+        - /baseinfo/category/getCategoryTree
+        - /baseinfo/dictionary/queryDictionaryValue
+        - /baseinfo/subject/querySubject
         - /user/org/getOrgUpdateForm
         - /user/company/getCompanyList
         - /user/company/getCompanyUpdateForm
@@ -187,9 +225,11 @@ org:
         - /user/usermanagement/queryUserManagementOptions
         - /user/usermanagement/getUserManagementUpdateForm
         - /user/department/queryDepartmentParent
+        - /user/usermanagement/queryUserManagementRole
         - /paper/template/query
         - /paper/create/standard/gen
         - /exam/exampublishrecord/getpaperinfo
+        - /exam/exampublishrecord/getuserinfo
         - /bes/exam/exampublishrecord/getuserinfo
         - /bes/exam/grade/markingPaper
         - /bes/exam/dopaper/getPaper

@@ -5,7 +5,6 @@ import aaron.common.data.exception.StarterError;
 import aaron.common.data.exception.StarterException;
 import aaron.common.utils.jwt.JwtUtil;
 import aaron.common.utils.jwt.UserPermission;
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import gateway.common.GatewayError;
 import gateway.common.GatewayException;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +64,6 @@ public class ApiGatewayFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
         ServerHttpRequest request = exchange.getRequest();
-        ServerHttpResponse response = exchange.getResponse();
 
         if (uri.contains(LOGIN_URL)){
             return chain.filter(exchange);
